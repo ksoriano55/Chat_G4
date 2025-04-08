@@ -4,10 +4,12 @@ import socket from "../utils/socket";
 
 function App() {
     const [isConnected, setIsConnected] = useState(true);
+    const [cerrarSesion, setCerrarSesion] = useState(false);
 
     useEffect(() => {
-        const nickname = localStorage.getItem("nickname") || "UsuarioAnonimo";
-
+        const nickname = localStorage.getItem("usuario") || "UsuarioAnonimo";
+        const logOut = localStorage.getItem("logOut") ;
+        setCerrarSesion(logOut === "true");
         socket.on("connect", () => {
             console.log("Conectado al servidor");
             setIsConnected(true);
@@ -33,12 +35,8 @@ function App() {
 
     return (
         <div className="bg-[url('/fondo.jpg')] bg-cover bg-center h-screen flex flex-col">
-            <div className="bg-black bg-opacity-75 h-auto flex items-center">
-                 <div className="bg-[url('/chat.png')] bg-cover bg-center h-8 my-4 w-28" />
-                {/*<div className="bg-[url('/tac.png')] bg-cover bg-center h-8 my-4 w-28" />
-                <div className="bg-[url('/toe.png')] bg-cover bg-center h-8 my-4 w-28" /> */}
-            </div>
-            {!isConnected && (
+            
+            {!isConnected && cerrarSesion && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="bg-gray-800 text-white p-6 rounded-lg w-96">
                         <p className="font-semibold text-lg">
