@@ -1,39 +1,33 @@
 import React, { useEffect, useState } from "react";
 import socket from "../../utils/socket";
 import EmojiPicker from "emoji-picker-react";
-type TMensaje = {
-  body: string;
-  from: string;
-};
-const usersConnected = [
-  { id: 1, name: "Arnoldo" },
-  { id: 2, name: "Keyla" },
-];
 
 const ChatApp = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hola", sender: "me", time: "02:00" },
-    { id: 2, text: "Yeah...Awsummmmm 😁😁😁", sender: "other", time: "02:01" },
-    { id: 3, text: "Como estas?", sender: "me", time: "02:01" },
-  ]);
-  const [mensajes, setMensajes] = useState<TMensaje[]>([]);
+  const [messages, setMessages] = useState([{ id: 0, text: "", sender: "", time: "" }]);
+  const [usuarios, setUsuarios] = useState<string[]>([]);
+  const [toMessages, setToMessages] = useState("");
   const [newMessage, setNewMessage] = useState("");
+  // const [mensaje, setMensaje] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [file, setFile] = useState(null);
 
   useEffect(() => {
+
+    socket.emit("getUserConectados");
+    socket.on("getUserOnlineResp", (data: any) => {
+      setUsuarios(data.data)
+
+    });
+
     socket.on("mensajeCliente", (data: string) => {
       console.log("cliente", data);
-      const newMessaje = {
-        body: data,
-        from: "",
-      };
-      setMensajes((state) => [...state, newMessaje]);
+      console.log("toMessages", toMessages)
+      setMessages((messages) => [...messages, { id: messages.length + 1, text: data, sender: toMessages ?? "", time: getHours(new Date) }]);
     });
 
     socket.on("usuario_desconectado", (response) => {
-      if (response.codigo_usuario === localStorage.getItem("userContrincante")) {
-      }
-      console.log("response", response)
+      // if (response.codigo_usuario === localStorage.getItem("userContrincante")) {
+      // }
     });
 
     return () => {
@@ -42,31 +36,53 @@ const ChatApp = () => {
     };
   }, []);
 
-
-
-  const handleSend = () => {
-    if (newMessage.trim() !== "") {
-      setMessages([...messages, { id: messages.length + 1, text: newMessage, sender: "me", time: "now" }]);
-      setNewMessage("");
+  useEffect(() => {
+    if (usuarios.length > 0) {
+      let userTo = usuarios.filter(x => x !== "UsuarioAnonimo" && x !== localStorage.getItem("user"))[0];
+      setToMessages(userTo)
     }
-  };
+  }, [usuarios]);
 
-  const onEmojiClick = (emojiData:any) => {
+  const onEmojiClick = (emojiData: any) => {
     setNewMessage(prev => prev + emojiData.emoji);
   };
 
+  const getHours = (date: Date) => {
+    const horas = date.getHours().toString().padStart(2, '0');
+    const minutos = date.getMinutes().toString().padStart(2, '0');
+    return `${horas}:${minutos}`;
+  };
+
+  const handleSend = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+    if (newMessage.trim() !== "") {
+      const newMessaje = {
+        body: newMessage,
+        from: "Me",
+      };
+      setMessages([...messages, { id: messages.length + 1, text: newMessage, sender: localStorage.getItem("user") ?? "", time: getHours(new Date) }]);
+      const to = toMessages;
+      const Message = newMessaje.body;
+      console.log("dirigido a: ", to)
+      socket.emit("mensaje", { Message, to });
+      setNewMessage("");
+    }
+  };
+  console.log("messages", messages)
   return (
     <div className="flex h-screen">
-      {/* Lista de usuarios conectados - Derecha */}
+      {/* Lista de usuarios conectados */}
       <div className="w-1/4 bg-white border-l border-gray-300 p-4 overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Usuarios conectados</h2>
         <ul className="space-y-2">
-          {usersConnected.map((user) => (
+          {usuarios.filter(x => x !== "UsuarioAnonimo" && x !== localStorage.getItem("user")).map((user, index) => (
             <li
-              key={user.id}
+              key={index}
               className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 cursor-pointer"
             >
-              {user.name}
+              {user}
             </li>
           ))}
         </ul>
@@ -74,16 +90,16 @@ const ChatApp = () => {
       {/* Lista de Usuarios - Izquierda */}
       <div className="w-3/4 flex flex-col border-r border-gray-300">
         {/* Header */}
-        <div className="bg-green-600 text-white p-4 font-bold">Chat</div>
+        <div className="bg-green-600 text-white p-4 font-bold">{toMessages}</div>
 
         {/* Chat */}
         <div className="flex-1 bg-gray-100 p-4 overflow-y-auto">
-          {messages.map((msg) => (
+          {messages.filter(x => x.text !== "").map((msg) => (
             <div
               key={msg.id}
-              className={`max-w-md mb-2 px-4 py-2 rounded-xl ${msg.sender === "me"
-                  ? "bg-green-200 ml-auto text-right"
-                  : "bg-white"
+              className={`max-w-md mb-2 px-4 py-2 rounded-xl ${msg.sender === localStorage.getItem("user")
+                ? "bg-green-200 ml-auto text-right"
+                : "bg-white"
                 }`}
             >
               <p>{msg.text}</p>
@@ -92,32 +108,37 @@ const ChatApp = () => {
           ))}
         </div>
 
-      {/* Entrada de mensaje */}
-      <div className="p-4 border-t border-gray-300">
+        {/* Entrada de mensaje */}
+        <div className="p-4 border-t border-gray-300">
           {showEmojiPicker && (
             <div className="absolute bottom-20 left-4 z-50">
               <EmojiPicker onEmojiClick={onEmojiClick} />
             </div>
           )}
-          <div className="flex items-center">
+          <div className="p-4 border-t flex items-center space-x-2">
             <button
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               className="mr-2 text-2xl"
             >
               😊
             </button>
+            <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+              Elegir archivo
+              <input
+                type="file"
+                onChange={(e: any) => setFile(e.target.files[0])}
+                className="hidden"
+              />
+            </label>
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              className="flex-1 border border-gray-400 rounded-lg px-4 py-2"
-              placeholder="Type a message..."
+              className="flex-1 border px-4 py-2 rounded"
+              placeholder="Escribe un mensaje..."
             />
-            <button
-              onClick={handleSend}
-              className="ml-2 bg-green-600 text-white px-4 py-2 rounded-lg"
-            >
-              Send
+            <button onClick={handleSend} className="bg-green-600 text-white px-4 py-2 rounded">
+              Enviar
             </button>
           </div>
         </div>
