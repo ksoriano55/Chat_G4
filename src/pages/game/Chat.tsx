@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import socket from "../../utils/socket";
 import EmojiPicker from "emoji-picker-react";
+import Header from "../../layouts/Header";
+import CryptoJS from "crypto-js";
 
 const ChatApp = () => {
   const [messages, setMessages] = useState([{ id: 0, text: "", sender: "", time: "" }]);
@@ -11,6 +13,18 @@ const ChatApp = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [file, setFile] = useState(null);
 
+  const AES_KEY = "asdfjou%48398fsd**/s.,sdj";
+
+  const cifrarMensaje = (mensaje: string): string => {
+    return CryptoJS.AES.encrypt(mensaje, AES_KEY).toString();
+  }
+
+  const descifrarMensaje = (mensajeCifrado: string): string =>  {
+    const bytes = CryptoJS.AES.decrypt(mensajeCifrado, AES_KEY);
+    return bytes.toString(CryptoJS.enc.Utf8);
+  }
+  
+
   useEffect(() => {
 
     socket.emit("getUserConectados");
@@ -19,7 +33,10 @@ const ChatApp = () => {
 
     });
     socket.on("mensajeCliente", (data: string) => {
-      setMessages((messages) => [...messages, { id: messages.length + 1, text: data, sender: localStorage.getItem("to") ?? "", time: getHours(new Date) }]);
+      console.log("Mensaje recibido:", data);
+      const mensaje = descifrarMensaje(data);
+
+      setMessages((messages) => [...messages, { id: messages.length + 1, text: mensaje, sender: localStorage.getItem("to") ?? "", time: getHours(new Date) }]);
     });
 
     socket.on("usuario_desconectado", (response) => {
@@ -81,12 +98,15 @@ const ChatApp = () => {
       };
       setMessages((messages) =>[...messages, { id: messages.length + 1, text: newMessage, sender: localStorage.getItem("user") ?? "", time: getHours(new Date) }]);
       const to = toMessages;
-      const Message = newMessaje.body;
+      const Message = cifrarMensaje(newMessaje.body);
+
       socket.emit("mensaje", { Message, to });
       setNewMessage("");
     }
   };
   return (
+    <>
+    <Header/>
     <div className="flex h-screen">
       {/* Lista de usuarios conectados */}
       <div className="w-1/4 bg-white border-l border-gray-300 p-4 overflow-y-auto">
@@ -159,6 +179,8 @@ const ChatApp = () => {
         </div>
       </div>
     </div>
+    </>
+    
   );
 };
 
