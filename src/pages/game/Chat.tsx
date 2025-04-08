@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import socket from "../../utils/socket";
+import EmojiPicker from "emoji-picker-react";
 type TMensaje = {
   body: string;
   from: string;
 };
 const usersConnected = [
-  { id: 1, name: "Swati - THN" },
-  { id: 2, name: "Chintu Voda" },
-  { id: 3, name: "Pinder whatzap" },
-  { id: 4, name: "Priyanshu pune" },
-  { id: 5, name: "Harash-mumbai" },
+  { id: 1, name: "Arnoldo" },
+  { id: 2, name: "Keyla" },
 ];
 
 const ChatApp = () => {
@@ -20,6 +18,7 @@ const ChatApp = () => {
   ]);
   const [mensajes, setMensajes] = useState<TMensaje[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     socket.on("mensajeCliente", (data: string) => {
@@ -52,6 +51,9 @@ const ChatApp = () => {
     }
   };
 
+  const onEmojiClick = (emojiData:any) => {
+    setNewMessage(prev => prev + emojiData.emoji);
+  };
 
   return (
     <div className="flex h-screen">
@@ -90,21 +92,34 @@ const ChatApp = () => {
           ))}
         </div>
 
-        {/* Input */}
-        <div className="p-4 flex border-t border-gray-300">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1 border border-gray-400 rounded-lg px-4 py-2"
-            placeholder="Type a message..."
-          />
-          <button
-            onClick={handleSend}
-            className="ml-2 bg-green-600 text-white px-4 py-2 rounded-lg"
-          >
-            Send
-          </button>
+      {/* Entrada de mensaje */}
+      <div className="p-4 border-t border-gray-300">
+          {showEmojiPicker && (
+            <div className="absolute bottom-20 left-4 z-50">
+              <EmojiPicker onEmojiClick={onEmojiClick} />
+            </div>
+          )}
+          <div className="flex items-center">
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="mr-2 text-2xl"
+            >
+              😊
+            </button>
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="flex-1 border border-gray-400 rounded-lg px-4 py-2"
+              placeholder="Type a message..."
+            />
+            <button
+              onClick={handleSend}
+              className="ml-2 bg-green-600 text-white px-4 py-2 rounded-lg"
+            >
+              Send
+            </button>
+          </div>
         </div>
       </div>
     </div>
