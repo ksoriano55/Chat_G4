@@ -1,0 +1,32 @@
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  
+  .player-statistics {
+    width: 90%;
+    max-width: 1200px;
+  }
+  
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Dos columnas */
+    grid-template-rows: repeat(2, 1fr); /* Dos filas */
+    gap: 20px; /* Espaciado entre gráficas */
+    padding-left: 14%;
+  }
+  
+  .chart-container {
+    position: relative;
+    height: 300px; /* Altura ajustada */
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 35px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
