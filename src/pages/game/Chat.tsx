@@ -61,7 +61,7 @@ const ChatApp = () => {
       }
       socket.emit("getBK_chat",get_bk_chat);
       socket.on("get_Chats", (data: any) => {
-        setMessages(JSON.parse(data.data));
+        setMessages(JSON.parse(descifrarMensaje(data.data)));
       });
     }
   }, [usuarios]);
@@ -69,7 +69,7 @@ const ChatApp = () => {
   useEffect(() => {
     if (messages.length > 0) {
       let save_bk_chat = {
-        chat: messages,
+        chat: cifrarMensaje(JSON.stringify(messages)),
         user1: localStorage.getItem("user"),
         user2: toMessages
       }
