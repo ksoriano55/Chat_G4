@@ -11,6 +11,10 @@ function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string>("");
   useEffect(() => {
+    var accesos = localStorage.getItem("user");
+    if(accesos === null){
+      localStorage.clear();
+    }
     setError("");
     socket.on("loginRespuesta", (data: IResponse) => {
       console.log(data);

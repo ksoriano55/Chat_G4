@@ -1,14 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import socket from "../utils/socket";
+import { useEffect } from "react";
 
 export default function Header() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem("logOut", "false");
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
     localStorage.setItem("logOut", "true");
     socket.disconnect();
-    navigate("/"); 
+    navigate("/");
   };
 
   return (
@@ -16,6 +21,8 @@ export default function Header() {
       {/* Logo */}
       <div className="bg-[url('/chat.png')] bg-cover bg-center h-8 w-28" />
 
+
+      <h5 style={{ color: "white" }}>{"Hola, " + localStorage.getItem("user")}</h5>
       {/* Botón de cerrar sesión */}
       <button
         onClick={handleLogout}

@@ -3,6 +3,7 @@ import socket from "../../utils/socket";
 import EmojiPicker from "emoji-picker-react";
 import Header from "../../layouts/Header";
 import CryptoJS from "crypto-js";
+import { useNavigate } from "react-router-dom";
 
 const ChatApp = () => {
   const [messages, setMessages] = useState([{ id: 0, text: "", sender: "", time: "" }]);
@@ -12,6 +13,7 @@ const ChatApp = () => {
   // const [mensaje, setMensaje] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [file, setFile] = useState(null);
+  const navigate = useNavigate();
 
   const AES_KEY = "asdfjou%48398fsd**/s.,sdj";
 
@@ -26,9 +28,17 @@ const ChatApp = () => {
   
 
   useEffect(() => {
+    var accesos = localStorage.getItem("user");
+    
+    if(accesos === null){
+      navigate("/");
+      return;
+    }
 
     socket.emit("getUserConectados");
     socket.on("getUserOnlineResp", (data: any) => {
+
+
       setUsuarios(data.data)
 
     });
@@ -47,6 +57,7 @@ const ChatApp = () => {
     return () => {
       socket.off("mensajeCliente");
       socket.off("disconnect");
+      socket.off("reconnect");
     };
   }, []);
 
