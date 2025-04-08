@@ -18,11 +18,8 @@ const ChatApp = () => {
       setUsuarios(data.data)
 
     });
-
     socket.on("mensajeCliente", (data: string) => {
-      console.log("cliente", data);
-      console.log("toMessages", toMessages)
-      setMessages((messages) => [...messages, { id: messages.length + 1, text: data, sender: toMessages ?? "", time: getHours(new Date) }]);
+      setMessages((messages) => [...messages, { id: messages.length + 1, text: data, sender: localStorage.getItem("to") ?? "", time: getHours(new Date) }]);
     });
 
     socket.on("usuario_desconectado", (response) => {
@@ -40,8 +37,28 @@ const ChatApp = () => {
     if (usuarios.length > 0) {
       let userTo = usuarios.filter(x => x !== "UsuarioAnonimo" && x !== localStorage.getItem("user"))[0];
       setToMessages(userTo)
+      localStorage.setItem("to",userTo)
+      let get_bk_chat = {
+        user1: localStorage.getItem("user"),
+        user2: userTo
+      }
+      socket.emit("getBK_chat",get_bk_chat);
+      socket.on("get_Chats", (data: any) => {
+        setMessages(JSON.parse(data.data));
+      });
     }
   }, [usuarios]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      let save_bk_chat = {
+        chat: messages,
+        user1: localStorage.getItem("user"),
+        user2: toMessages
+      }
+      socket.emit("saveBK_chat", save_bk_chat);
+    }
+  }, [messages]);
 
   const onEmojiClick = (emojiData: any) => {
     setNewMessage(prev => prev + emojiData.emoji);
@@ -62,15 +79,13 @@ const ChatApp = () => {
         body: newMessage,
         from: "Me",
       };
-      setMessages([...messages, { id: messages.length + 1, text: newMessage, sender: localStorage.getItem("user") ?? "", time: getHours(new Date) }]);
+      setMessages((messages) =>[...messages, { id: messages.length + 1, text: newMessage, sender: localStorage.getItem("user") ?? "", time: getHours(new Date) }]);
       const to = toMessages;
       const Message = newMessaje.body;
-      console.log("dirigido a: ", to)
       socket.emit("mensaje", { Message, to });
       setNewMessage("");
     }
   };
-  console.log("messages", messages)
   return (
     <div className="flex h-screen">
       {/* Lista de usuarios conectados */}

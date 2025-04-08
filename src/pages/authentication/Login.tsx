@@ -26,7 +26,7 @@ function Login() {
     e.preventDefault();
     
     socket.emit("login", credential);
-    // localStorage.setItem("user",credential.nickname)
+    localStorage.setItem("user",credential.usuario)
     //navigate("/chat");
   };
 
