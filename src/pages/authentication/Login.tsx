@@ -6,23 +6,28 @@ import { IResponse } from "../../interfaces/IResponse";
 function Login() {
   localStorage.removeItem("user")
   localStorage.removeItem("userContrincante")
-  const initialValue: ICredentials = { nickname: "", password: "" }
+  const initialValue: ICredentials = { usuario: "", password: "" }
   const [credential, setCredential] = useState<ICredentials>(initialValue);
   const navigate = useNavigate();
-
+  const [error, setError] = useState<string>("");
   useEffect(() => {
-    // socket.on("loginRespuesta", (data: IResponse) => {
-    //   if (data.success) {
-    //     navigate("/chat");
-    //   }
-    // });
+    setError("");
+    socket.on("loginRespuesta", (data: IResponse) => {
+      console.log(data);
+      if (data.success) {
+        navigate("/chat");
+      }else{
+        setError(data.message);
+      }
+    });
   }, [])
 
   const handleSubmit = (e: any) => {
-    // e.preventDefault();
-    // socket.emit("login", credential);
+    e.preventDefault();
+    
+    socket.emit("login", credential);
     // localStorage.setItem("user",credential.nickname)
-    navigate("/chat");
+    //navigate("/chat");
   };
 
   const handleOnChange = (e: any) => {
@@ -39,7 +44,7 @@ function Login() {
           <div className="mb-4">
             <input
               type="text"
-              name="nickname"
+              name="usuario"
               placeholder="Usuario"
               onChange={(e: any) => handleOnChange(e.target)}
               className="w-full px-4 py-2 bg-gray-200 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -57,12 +62,17 @@ function Login() {
           <div className="text-right mb-4">
             <a href="/singup" className="text-purple-400 hover:underline text-sm">¿No tienes cuenta? Crear</a>
           </div>
+          {error && (
+            <div className="mb-4 text-red-500 text-sm">
+              <p>{error}</p>
+            </div>
+          )}
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-500 to-pink-500 text-white font-bold py-2 rounded-lg hover:from-blue-600 hover:to-pink-600"
             onClick={handleSubmit}
           >
-            Log In
+            Iniciar Sesión
           </button>
         </form>
       </div>

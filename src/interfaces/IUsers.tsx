@@ -1,12 +1,12 @@
 export interface IUsers {
     id: number,
-    name: string,
+    usuario: string,
+    nombre: string,
     password: string,
-    nickname: string,
-    status: boolean
+    confirmarPassword?: string,
 }
 
 export interface ICredentials {
-    nickname: string,
+    usuario: string,
     password: string
 }
