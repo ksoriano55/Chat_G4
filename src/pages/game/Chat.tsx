@@ -57,10 +57,7 @@ const ChatApp = () => {
       setMessages((messages) => [...messages, { id: messages.length + 1, text: mensaje, sender: localStorage.getItem("to") ?? "", time: getHours(new Date) }]);
     });
 
-    socket.on("usuario_desconectado", (response) => {
-      // if (response.codigo_usuario === localStorage.getItem("userContrincante")) {
-      // }
-    });
+   
 
     socket.on("archivo", (data) => {
       const hora = getHours(new Date());
